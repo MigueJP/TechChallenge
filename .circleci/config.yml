@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   python: circleci/python@3.2.0
+  slack: circleci/slack@6.0.0
 jobs:
   build_and_test:
     executor: python/default
@@ -12,7 +13,32 @@ jobs:
       - run:
           name: Run test
           command: pytest
+  notify:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "*This is a notification from Tech Challenge*",
+                      "emoji": true
+                    }
+                  ]
+                }
+              ]
+            }
+          event: always
 workflows:
   main:
     jobs:
       - build_and_test
+  send-slack-notifications:
+    jobs:
+      - notify:
+          context: slack-secrets
